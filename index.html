@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Senin İçin ❤️</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="login">
+    <h1>Hoş Geldin 💖</h1>
+    <p>Bu site sadece sana özel</p>
+    <input type="password" id="sifre" placeholder="Özel kelime">
+    <button onclick="kontrol()">Giriş</button>
+</div>
+
+<script>
+function kontrol() {
+    const sifre = document.getElementById("sifre").value;
+    if (sifre === "08.09.2025") {
+        window.location.href = "hikayemiz.html";
+    } else {
+        alert("Yanlış ama kalbim senin 💔");
+    }
+}
+</script>
+
+</body>
+</html>
