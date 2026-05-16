@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Paneli 🔐</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap');
+  :root {
+    --rose:#c9536a; --rose-light:#f7e8ec; --rose-dark:#8b2a3c;
+    --cream:#fdf6f0; --text:#2d1f22; --muted:#8a7070;
+    --border:#e8d5d9; --success:#5a9a6f; --danger:#c95353;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Lato',sans-serif;background:var(--cream);color:var(--text);min-height:100vh}
+  #login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#fdf0f3,#fce4ec,#f8d7e3)}
+  .login-card{background:white;border-radius:24px;padding:48px 40px;width:360px;box-shadow:0 20px 60px rgba(201,83,106,.15);text-align:center}
+  .heart{font-size:48px;margin-bottom:12px;display:block;animation:pulse 1.5s ease-in-out infinite}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+  .login-card h1{font-family:'Playfair Display',serif;font-size:26px;color:var(--rose-dark);margin-bottom:6px}
+  .login-card p{color:var(--muted);font-size:14px;margin-bottom:32px}
+  .login-card input{width:100%;padding:14px 18px;border:2px solid var(--border);border-radius:12px;font-size:15px;font-family:'Lato',sans-serif;outline:none;transition:border-color .2s;margin-bottom:16px}
+  .login-card input:focus{border-color:var(--rose)}
+  .btn-primary{width:100%;padding:14px;background:var(--rose);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:'Lato',sans-serif;cursor:pointer;transition:background .2s}
+  .btn-primary:hover{background:var(--rose-dark)}
+  .login-error{color:var(--danger);font-size:13px;margin-top:10px;display:none}
+  #admin-panel{display:none}
+  header{background:white;border-bottom:2px solid var(--border);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+  header h1{font-family:'Playfair Display',serif;font-size:22px;color:var(--rose-dark)}
+  .subtitle{font-size:12px;color:var(--muted)}
+  .logout-btn{background:var(--rose-light);color:var(--rose-dark);border:1px solid var(--border);border-radius:8px;padding:8px 16px;font-size:13px;font-family:'Lato',sans-serif;cursor:pointer;font-weight:700}
+  .container{max-width:900px;margin:0 auto;padding:32px 24px}
+  .tabs{display:flex;gap:8px;margin-bottom:28px;background:white;border-radius:14px;padding:6px;border:2px solid var(--border)}
+  .tab{flex:1;padding:10px 16px;border:none;border-radius:10px;font-family:'Lato',sans-serif;font-size:14px;font-weight:700;cursor:pointer;background:transparent;color:var(--muted);transition:all .2s}
+  .tab.active{background:var(--rose);color:white}
+  .tab-content{display:none}
+  .tab-content.active{display:block}
+  .card{background:white;border-radius:16px;border:2px solid var(--border);padding:28px;margin-bottom:20px}
+  .card h2{font-family:'Playfair Display',serif;font-size:20px;color:var(--rose-dark);margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+  label{display:block;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;margin-top:14px}
+  input[type="text"],input[type="password"],textarea{width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:10px;font-size:14px;font-family:'Lato',sans-serif;color:var(--text);outline:none;transition:border-color .2s;background:var(--cream)}
+  input[type="text"]:focus,input[type="password"]:focus,textarea:focus{border-color:var(--rose);background:white}
+  textarea{resize:vertical;min-height:90px}
+  .btn-add{margin-top:16px;padding:12px 24px;background:var(--rose);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;font-family:'Lato',sans-serif;cursor:pointer;transition:background .2s}
+  .btn-add:hover{background:var(--rose-dark)}
+  .btn-add:disabled{background:#ccc;cursor:not-allowed}
+  .upload-area{border:2px dashed var(--border);border-radius:12px;padding:28px;text-align:center;cursor:pointer;transition:all .2s;background:var(--cream);margin-top:8px}
+  .upload-area:hover,.upload-area.dragging{border-color:var(--rose);background:var(--rose-light)}
+  .upload-area input{display:none}
+  .upload-icon{font-size:36px;margin-bottom:8px}
+  .upload-area p{color:var(--muted);font-size:14px}
+  .upload-area strong{color:var(--rose)}
+  .preview-img{width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin-top:12px;display:none}
+  .progress-bar{height:6px;background:var(--border);border-radius:3px;margin-top:12px;display:none}
+  .progress-fill{height:100%;background:var(--rose);border-radius:3px;width:0%;transition:width .3s}
+  .photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:16px}
+  .photo-item{border:2px solid var(--border);border-radius:12px;overflow:hidden;background:var(--cream);position:relative}
+  .photo-item img{width:100%;height:110px;object-fit:cover;display:block}
+  .photo-info{padding:8px;font-size:12px;color:var(--muted)}
+  .photo-item .del-btn{position:absolute;top:6px;right:6px;background:rgba(201,83,106,.9);color:white;border:none;border-radius:50%;width:26px;height:26px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .hikaye-item{border:2px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;background:var(--cream);position:relative}
+  .hikaye-item img{width:80px;height:60px;object-fit:cover;border-radius:8px;margin-bottom:8px}
+  .hikaye-text{font-size:13px;color:var(--text);line-height:1.5}
+  .hikaye-item .del-btn{position:absolute;top:10px;right:10px;background:var(--danger);color:white;border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer}
+  .ozel-item{border:2px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;background:var(--cream);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+  .ozel-emoji{font-size:22px}
+  .ozel-text{flex:1;font-size:13px;line-height:1.5}
+  .ozel-item .del-btn{background:var(--danger);color:white;border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;flex-shrink:0}
+  .toast{position:fixed;bottom:28px;right:28px;background:var(--success);color:white;padding:14px 22px;border-radius:12px;font-weight:700;font-size:14px;opacity:0;transform:translateY(10px);transition:all .3s;z-index:999;pointer-events:none}
+  .toast.show{opacity:1;transform:translateY(0)}
+  .toast.error{background:var(--danger)}
+  .empty-state{text-align:center;padding:28px;color:var(--muted);font-size:14px}
+  .loading{text-align:center;padding:20px}
+  .spinner{display:inline-block;width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--rose);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-card">
+    <span class="heart">💖</span>
+    <h1>Admin Paneli</h1>
+    <p>Sadece bizim için olan yere giriş yap</p>
+    <input type="password" id="admin-pass" placeholder="Admin şifresi" onkeydown="if(event.key==='Enter')login()">
+    <button class="btn-primary" onclick="login()">Giriş Yap</button>
+    <div class="login-error" id="login-error">❌ Yanlış şifre!</div>
+  </div>
+</div>
+
+<div id="admin-panel">
+  <header>
+    <div>
+      <h1>💕 Admin Paneli</h1>
+      <div class="subtitle">Siteyi buradan yönet</div>
+    </div>
+    <button class="logout-btn" onclick="logout()">Çıkış Yap</button>
+  </header>
+
+  <div class="container">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('galeri',this)">📸 Galeri</button>
+      <button class="tab" onclick="switchTab('hikaye',this)">💌 Hikayemiz</button>
+      <button class="tab" onclick="switchTab('ozel',this)">💖 Sana Özel</button>
+    </div>
+
+    <!-- GALERİ -->
+    <div class="tab-content active" id="tab-galeri">
+      <div class="card">
+        <h2>📸 Yeni Fotoğraf Ekle</h2>
+        <label>Fotoğraf Seç</label>
+        <div class="upload-area" id="upload-area" onclick="document.getElementById('foto-input').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+          <input type="file" id="foto-input" accept="image/*" onchange="dosyaSec(this.files[0])">
+          <div class="upload-icon">📷</div>
+          <p><strong>Tıkla</strong> veya fotoğrafı sürükle bırak</p>
+        </div>
+        <img id="foto-preview" class="preview-img">
+        <div class="progress-bar" id="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        <label>Açıklama (opsiyonel)</label>
+        <input type="text" id="galeri-aciklama" placeholder="Bu fotoğraf hakkında bir şeyler...">
+        <button class="btn-add" id="galeri-ekle-btn" onclick="galeriEkle()">+ Galeri'ye Ekle</button>
+      </div>
+      <div class="card">
+        <h2>Mevcut Fotoğraflar</h2>
+        <div id="galeri-liste"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <!-- HİKAYE -->
+    <div class="tab-content" id="tab-hikaye">
+      <div class="card">
+        <h2>💌 Yeni Hikaye Bölümü</h2>
+        <label>Fotoğraf (opsiyonel)</label>
+        <div class="upload-area" onclick="document.getElementById('hikaye-foto-input').click()">
+          <input type="file" id="hikaye-foto-input" accept="image/*" onchange="hikayeDosyaSec(this.files[0])">
+          <div class="upload-icon">🖼️</div>
+          <p><strong>Tıkla</strong> fotoğraf seç</p>
+        </div>
+        <img id="hikaye-preview" class="preview-img">
+        <label>Metin</label>
+        <textarea id="hikaye-metin" placeholder="Bu bölüme ait metni yaz..."></textarea>
+        <button class="btn-add" id="hikaye-ekle-btn" onclick="hikayeEkle()">+ Hikayeye Ekle</button>
+      </div>
+      <div class="card">
+        <h2>Mevcut Bölümler</h2>
+        <div id="hikaye-liste"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <!-- SANA ÖZEL -->
+    <div class="tab-content" id="tab-ozel">
+      <div class="card">
+        <h2>💖 Yeni Mesaj Ekle</h2>
+        <label>Emoji</label>
+        <input type="text" id="ozel-emoji" placeholder="💕" maxlength="4">
+        <label>Başlık</label>
+        <input type="text" id="ozel-baslik" placeholder="Sana özel bir şey...">
+        <label>Metin</label>
+        <textarea id="ozel-metin" placeholder="Sevgilime özel mesaj..."></textarea>
+        <button class="btn-add" onclick="ozelEkle()">+ Ekle</button>
+      </div>
+      <div class="card">
+        <h2>Mevcut Mesajlar</h2>
+        <div id="ozel-liste"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDh3wDr9Ovyoizj99aNDs-3JTpMa3ZqGSA",
+    authDomain: "sevgilim-4da27.firebaseapp.com",
+    projectId: "sevgilim-4da27",
+    storageBucket: "sevgilim-4da27.firebasestorage.app",
+    messagingSenderId: "1001749458324",
+    appId: "1:1001749458324:web:9a4b4d2a9f01089e6a3381"
+  };
+
+  const CLOUDINARY_CLOUD = "djih7c4pp";
+  const CLOUDINARY_PRESET = "SEVGİLİM";
+  const ADMIN_PASS = "admin2025";
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window._galeriFoto = null;
+  window._hikayeFoto = null;
+
+  window.login = () => {
+    if (document.getElementById('admin-pass').value === ADMIN_PASS) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('admin-panel').style.display = 'block';
+      galeriListele(); hikayeListele(); ozelListele();
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+    }
+  };
+
+  window.logout = () => {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('admin-panel').style.display = 'none';
+    document.getElementById('admin-pass').value = '';
+  };
+
+  window.switchTab = (name, el) => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+  };
+
+  const showToast = (msg, err=false) => {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (err ? ' error' : '');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  };
+
+  async function cloudinaryUpload(file, onProgress) {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', CLOUDINARY_PRESET);
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`);
+      xhr.upload.onprogress = e => { if (e.lengthComputable) onProgress(Math.round(e.loaded/e.total*100)); };
+      xhr.onload = () => { const r = JSON.parse(xhr.responseText); r.secure_url ? resolve(r.secure_url) : reject(r); };
+      xhr.onerror = reject;
+      xhr.send(fd);
+    });
+  }
+
+  const previewFile = (file, imgId) => {
+    const r = new FileReader();
+    r.onload = e => { const img = document.getElementById(imgId); img.src = e.target.result; img.style.display = 'block'; };
+    r.readAsDataURL(file);
+  };
+
+  window.dragOver = e => { e.preventDefault(); document.getElementById('upload-area').classList.add('dragging'); };
+  window.dragLeave = () => document.getElementById('upload-area').classList.remove('dragging');
+  window.dropFile = e => { e.preventDefault(); document.getElementById('upload-area').classList.remove('dragging'); const f = e.dataTransfer.files[0]; if(f) dosyaSec(f); };
+  window.dosyaSec = f => { window._galeriFoto = f; previewFile(f, 'foto-preview'); };
+  window.hikayeDosyaSec = f => { window._hikayeFoto = f; previewFile(f, 'hikaye-preview'); };
+
+  // ── GALERİ ──
+  window.galeriEkle = async () => {
+    if (!window._galeriFoto) { showToast('Önce fotoğraf seç!', true); return; }
+    const btn = document.getElementById('galeri-ekle-btn');
+    btn.disabled = true; btn.textContent = 'Yükleniyor...';
+    document.getElementById('progress-bar').style.display = 'block';
+    try {
+      const url = await cloudinaryUpload(window._galeriFoto, p => {
+        document.getElementById('progress-fill').style.width = p + '%';
+      });
+      await addDoc(collection(db,'galeri'), {
+        url,
+        aciklama: document.getElementById('galeri-aciklama').value.trim(),
+        tarih: Date.now()
+      });
+      showToast('✅ Fotoğraf eklendi!');
+      window._galeriFoto = null;
+      document.getElementById('foto-preview').style.display = 'none';
+      document.getElementById('galeri-aciklama').value = '';
+      document.getElementById('foto-input').value = '';
+      document.getElementById('progress-bar').style.display = 'none';
+      document.getElementById('progress-fill').style.width = '0%';
+      galeriListele();
+    } catch(e) { showToast('❌ Yükleme hatası. Upload preset adını kontrol et!', true); console.error(e); }
+    btn.disabled = false; btn.textContent = "+ Galeri'ye Ekle";
+  };
+
+  async function galeriListele() {
+    const el = document.getElementById('galeri-liste');
+    el.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+    try {
+      const snap = await getDocs(query(collection(db,'galeri'), orderBy('tarih','desc')));
+      if (snap.empty) { el.innerHTML = '<div class="empty-state">Henüz fotoğraf yok.</div>'; return; }
+      el.innerHTML = '<div class="photo-grid">' + snap.docs.map(d =>
+        `<div class="photo-item">
+          <img src="${d.data().url}" alt="">
+          <div class="photo-info">${d.data().aciklama||''}</div>
+          <button class="del-btn" onclick="galeriSil('${d.id}')">×</button>
+        </div>`
+      ).join('') + '</div>';
+    } catch(e) { el.innerHTML = '<div class="empty-state">Bağlantı hatası.</div>'; console.error(e); }
+  }
+
+  window.galeriSil = async id => {
+    if (!confirm('Silmek istediğine emin misin?')) return;
+    await deleteDoc(doc(db,'galeri',id));
+    showToast('🗑️ Silindi!'); galeriListele();
+  };
+
+  // ── HİKAYE ──
+  window.hikayeEkle = async () => {
+    const metin = document.getElementById('hikaye-metin').value.trim();
+    if (!metin) { showToast('Metin boş olamaz!', true); return; }
+    const btn = document.getElementById('hikaye-ekle-btn');
+    btn.disabled = true; btn.textContent = 'Kaydediliyor...';
+    try {
+      let imgUrl = '';
+      if (window._hikayeFoto) imgUrl = await cloudinaryUpload(window._hikayeFoto, ()=>{});
+      await addDoc(collection(db,'hikaye'), { imgUrl, metin, tarih: Date.now() });
+      showToast('✅ Bölüm eklendi!');
+      window._hikayeFoto = null;
+      document.getElementById('hikaye-preview').style.display = 'none';
+      document.getElementById('hikaye-metin').value = '';
+      document.getElementById('hikaye-foto-input').value = '';
+      hikayeListele();
+    } catch(e) { showToast('❌ Hata oluştu', true); console.error(e); }
+    btn.disabled = false; btn.textContent = '+ Hikayeye Ekle';
+  };
+
+  async function hikayeListele() {
+    const el = document.getElementById('hikaye-liste');
+    el.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+    try {
+      const snap = await getDocs(query(collection(db,'hikaye'), orderBy('tarih','asc')));
+      if (snap.empty) { el.innerHTML = '<div class="empty-state">Henüz bölüm yok.</div>'; return; }
+      el.innerHTML = snap.docs.map(d =>
+        `<div class="hikaye-item">
+          <button class="del-btn" onclick="hikayeSil('${d.id}')">Sil</button>
+          ${d.data().imgUrl ? `<img src="${d.data().imgUrl}">` : ''}
+          <div class="hikaye-text">${d.data().metin.substring(0,120)}${d.data().metin.length>120?'...':''}</div>
+        </div>`
+      ).join('');
+    } catch(e) { el.innerHTML = '<div class="empty-state">Bağlantı hatası.</div>'; }
+  }
+
+  window.hikayeSil = async id => {
+    if (!confirm('Silmek istediğine emin misin?')) return;
+    await deleteDoc(doc(db,'hikaye',id));
+    showToast('🗑️ Silindi!'); hikayeListele();
+  };
+
+  // ── SANA ÖZEL ──
+  window.ozelEkle = async () => {
+    const baslik = document.getElementById('ozel-baslik').value.trim();
+    const metin = document.getElementById('ozel-metin').value.trim();
+    if (!baslik||!metin) { showToast('Başlık ve metin gerekli!', true); return; }
+    await addDoc(collection(db,'ozel'), {
+      emoji: document.getElementById('ozel-emoji').value.trim() || '💕',
+      baslik, metin, tarih: Date.now()
+    });
+    showToast('✅ Mesaj eklendi!');
+    document.getElementById('ozel-emoji').value = '';
+    document.getElementById('ozel-baslik').value = '';
+    document.getElementById('ozel-metin').value = '';
+    ozelListele();
+  };
+
+  async function ozelListele() {
+    const el = document.getElementById('ozel-liste');
+    el.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+    try {
+      const snap = await getDocs(query(collection(db,'ozel'), orderBy('tarih','desc')));
+      if (snap.empty) { el.innerHTML = '<div class="empty-state">Henüz mesaj yok.</div>'; return; }
+      el.innerHTML = snap.docs.map(d =>
+        `<div class="ozel-item">
+          <div class="ozel-emoji">${d.data().emoji}</div>
+          <div class="ozel-text"><strong>${d.data().baslik}</strong><br>${d.data().metin.substring(0,80)}...</div>
+          <button class="del-btn" onclick="ozelSil('${d.id}')">Sil</button>
+        </div>`
+      ).join('');
+    } catch(e) { el.innerHTML = '<div class="empty-state">Bağlantı hatası.</div>'; }
+  }
+
+  window.ozelSil = async id => {
+    if (!confirm('Silmek istediğine emin misin?')) return;
+    await deleteDoc(doc(db,'ozel',id));
+    showToast('🗑️ Silindi!'); ozelListele();
+  };
+</script>
+</body>
+</html>
